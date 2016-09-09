@@ -12,8 +12,9 @@ Exploration of vectorization for polynomial evaluation in Julia.
 This simply exports one macro `@estrin`  that expands to Estrin's algorithm using SIMD operations. Only works for odd polynomial sizes for now...
 
 # To-do
-- get rid type inference failure (wip)
 - inbounds everywhere (wip)
+
+For now please use `julia -O3 --check-bounds=no` for comparison with Base `@evalpoly`
 
 # Installation
 
@@ -31,7 +32,6 @@ c = randn(Float64, 8)
 g(x,c) = @estrin x c[1] c[2] c[3] c[4] c[5] c[6] c[7] c[8]
 f(x,c) = @evalpoly x c[1] c[2] c[3] c[4] c[5] c[6] c[7] c[8]
 
-g(x,c) 
-
-f(x,c)
+@time g(x,c) 
+@time f(x,c)
 ```
