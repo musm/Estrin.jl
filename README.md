@@ -5,11 +5,10 @@
 
 [![codecov.io](http://codecov.io/github/musm/Estrin.jl.jl/coverage.svg?branch=master)](http://codecov.io/github/musm/Estrin.jl?branch=master)
  -->
-# Estrin.jl (WIP)
+# ParPoly.jl (WIP)
 
-Exploration of vectorization for polynomial evaluation in Julia.
+Exploration of parallelization for polynomial evaluation in Julia.
 
-This simply exports one macro `@estrin`  that expands to Estrin's algorithm using SIMD operations. Only works for odd polynomial sizes for now...
 
 # To-do
 - inbounds everywhere (wip)
@@ -19,7 +18,7 @@ For now please use `julia -O3 --check-bounds=no` for comparison with Base `@eval
 # Installation
 
 ```julia
-Pkg.clone("https://github.com/musm/Estrin.jl.git")
+Pkg.clone("https://github.com/musm/ParPoly.jl.git")
 ```
 
 # Example

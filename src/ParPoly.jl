@@ -1,4 +1,4 @@
-module Estrin
+module ParPoly
 
 export @estrin
 using SIMD
@@ -29,7 +29,7 @@ macro estrin(t, c...)
         # $(a2) = Vec{$N,T}($tr)
         $(a) =  muladd($(a1), x, $(a2))
     end
-
+    
    while N > 1
         ext = Expr(:block, :(x = x * x))
         N = N÷2
