@@ -1,62 +1,57 @@
 module ParPoly
 
-export @estrin
+export @estrin, @horner_split
 using SIMD
 
-macro estrin(t, c...)
-    N = length(c) ÷ 2
+include("estrin.jl")
 
-    tl = Expr(:tuple)
-    tr = Expr(:tuple)
-    for i = 1:N
-        push!(tl.args, :(p[2($i)]))
-        push!(tr.args, :(p[2($i)-1]))
-    end
+
+macro horner_split(x,p...)
+    t = gensym("x1")
+    t2 = gensym("x2")
+    blk = Expr(:block, :($(t) = $(esc(x))))
+    push!(blk.args, :($(t2) = $(t)*$(t)))
+
+    n = length(p)
+    p0 = esc(p[1])
     
-    a1 = gensym("a1") 
-    a2 = gensym("a2") 
-    a = gensym("a") 
+    if isodd(n)
+        ex_o = esc(p[end-1])
+        ex_e = esc(p[end])
 
-    blk = quote
-        T = typeof($(esc(t)))
-        x = $(esc(t))
-        p = $(Expr(:tuple, map(esc, c)...))
-
-        $(:(@inbounds $(a1) = Vec{$N,T}($tl)))
-        $(:(@inbounds $(a2) = Vec{$N,T}($tr)))
-
-        # $(a1) = Vec{$N,T}($tl)
-        # $(a2) = Vec{$N,T}($tr)
-        $(a) =  muladd($(a1), x, $(a2))
-    end
-    
-   while N > 1
-        ext = Expr(:block, :(x = x * x))
-        N = N÷2
-
-        tl = Expr(:tuple)
-        tr = Expr(:tuple)
-        for i = 1:N
-            push!(tl.args, :($a[2($i)]))
-            push!(tr.args, :($a[2($i)-1]))
+        for i = n-3:-2:2
+            ex_o = :(muladd($(t2), $ex_o, $(esc(p[i]))))
+        end
+        for i = n-2:-2:2
+            ex_e = :(muladd($(t2), $ex_e, $(esc(p[i]))))
         end
 
-        a1 = gensym("a1") 
-        a2 = gensym("a2") 
-        a = gensym("a") 
+        c_e = gensym("c_e")
+        c_o = gensym("c_o")
+        push!(blk.args, :($(c_o) = $(ex_o)) )
+        push!(blk.args, :($(c_e) = $(ex_e)) )
 
-        push!(ext.args, :(@inbounds $(a1) = Vec{$N,T}($tl)))
-        push!(ext.args, :(@inbounds $(a2) = Vec{$N,T}($tr)))
-        push!(ext.args, :($(a) = muladd($(a1), x, $(a2)) ))
+        push!(blk.args,:($(p0) + $(t)*$(c_o) + $(t2)*$(c_e)) )
+    elseif iseven(n)
+        ex_o = esc(p[end])
+        ex_e = esc(p[end-1])
 
-        push!(blk.args,ext)
+        for i = n-2:-2:2
+            ex_o = :(muladd($(t2), $ex_o, $(esc(p[i]))))
+        end
+        for i = n-3:-2:2
+            ex_e = :(muladd($(t2), $ex_e, $(esc(p[i]))))
+        end
+
+        c_e = gensym("c_e")
+        c_o = gensym("c_o")
+        push!(blk.args, :($(c_o) = $(ex_o)) )
+        push!(blk.args, :($(c_e) = $(ex_e)) )
+
+        push!(blk.args,:($(p0) + $(t)*$(c_o) + $(t2)*$(c_e)) )
     end
-    v = gensym("x") 
-    push!(blk.args,:(@inbounds $v =  $(a)[1]))
-    push!(blk.args,:($v))
+
     return blk
 end
-
-
 
 end
