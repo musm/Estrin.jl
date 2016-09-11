@@ -14,15 +14,14 @@ macro estrin(t, c...)
     a = gensym("a") 
 
     blk = quote
-        T = typeof($(esc(t)))
         x = $(esc(t))
         p = $(Expr(:tuple, map(esc, c)...))
 
-        $(:(@inbounds $(a1) = Vec{$N,T}($tl)))
-        $(:(@inbounds $(a2) = Vec{$N,T}($tr)))
+        $(:(@inbounds $(a1) = Vec{$N,Float64}($tl)))
+        $(:(@inbounds $(a2) = Vec{$N,Float64}($tr)))
 
-        # $(a1) = Vec{$N,T}($tl)
-        # $(a2) = Vec{$N,T}($tr)
+        # $(a1) = Vec{$N,Float64}($tl)
+        # $(a2) = Vec{$N,Float64}($tr)
         $(a) =  muladd($(a1), x, $(a2))
     end
     
@@ -41,8 +40,8 @@ macro estrin(t, c...)
         a2 = gensym("a2") 
         a = gensym("a") 
 
-        push!(ext.args, :(@inbounds $(a1) = Vec{$N,T}($tl)))
-        push!(ext.args, :(@inbounds $(a2) = Vec{$N,T}($tr)))
+        push!(ext.args, :(@inbounds $(a1) = Vec{$N,Float64}($tl)))
+        push!(ext.args, :(@inbounds $(a2) = Vec{$N,Float64}($tr)))
         push!(ext.args, :($(a) = muladd($(a1), x, $(a2)) ))
 
         push!(blk.args,ext)
