@@ -13,10 +13,11 @@ macro horner_split_simd(t,p...)
     x2x2 = gensym("x2x2")
 
     blk = quote
+        T = typeof($(esc(t)))
         $x1 = $(esc(t))
         $x2 = $(esc(t)) * $(esc(t))
-        $x1x2 = Vec{2,Float64}(($x1,$x2))
-        $x2x2 = Vec{2,Float64}(($x2,$x2))
+        $x1x2 = Vec{2,T}(($x1,$x2))
+        $x2x2 = Vec{2,T}(($x2,$x2))
     end
     n = length(p)
     p0 = esc(p[1])    
@@ -28,13 +29,13 @@ macro horner_split_simd(t,p...)
 
     if isodd(n)
         for i = 1:m
-            push!(blk.args, :( $(c[i]) = Vec{2,Float64}(( $(esc(p[2i])), $(esc(p[2i+1])) )) ))
+            push!(blk.args, :( $(c[i]) = Vec{2,T}(( $(esc(p[2i])), $(esc(p[2i+1])) )) ))
         end
     elseif iseven(n)
         for i = 1:m-1
-            push!(blk.args, :( $(c[i]) = Vec{2,Float64}(( $(esc(p[2i])), $(esc(p[2i+1])) )) ))
+            push!(blk.args, :( $(c[i]) = Vec{2,T}(( $(esc(p[2i])), $(esc(p[2i+1])) )) ))
         end
-        push!(blk.args, :( $(c[m]) = Vec{2,Float64}(( $(esc(p[2m])), $(zero(Float64)) )) )) # pad with a zero
+        push!(blk.args, :( $(c[m]) = Vec{2,T}(( $(esc(p[2m])), zero(T) )) )) # pad with a zero
     end
 
     ex = c[end]
@@ -51,8 +52,10 @@ end
 macro horner_split(x,p...)
     t = gensym("x1")
     t2 = gensym("x2")
-    blk = Expr(:block, :($(t) = $(esc(x))))
-    push!(blk.args, :($(t2) = $(t)*$(t)))
+    blk = quote
+        $t = $(esc(x))
+        $t2 = $(esc(x)) * $(esc(x))
+    end
 
     n = length(p)
     p0 = esc(p[1])
@@ -67,13 +70,6 @@ macro horner_split(x,p...)
         for i = n-2:-2:2
             ex_e = :(muladd($(t2), $ex_e, $(esc(p[i]))))
         end
-
-        c_e = gensym("c_e")
-        c_o = gensym("c_o")
-        push!(blk.args, :($(c_o) = $(ex_o)) )
-        push!(blk.args, :($(c_e) = $(ex_e)) )
-
-        push!(blk.args,:($(p0) + $(t)*$(c_o) + $(t2)*$(c_e)) )
     elseif iseven(n)
         ex_o = esc(p[end])
         ex_e = esc(p[end-1])
@@ -90,8 +86,8 @@ macro horner_split(x,p...)
         push!(blk.args, :($(c_o) = $(ex_o)) )
         push!(blk.args, :($(c_e) = $(ex_e)) )
         push!(blk.args,:($(p0) + $(t)*$(c_o) + $(t2)*$(c_e)) )
-    end
 
+    
     return blk
 end
 
