@@ -47,7 +47,6 @@ macro horner_split(x,p...)
         c_o = gensym("c_o")
         push!(blk.args, :($(c_o) = $(ex_o)) )
         push!(blk.args, :($(c_e) = $(ex_e)) )
-
         push!(blk.args,:($(p0) + $(t)*$(c_o) + $(t2)*$(c_e)) )
     end
 
