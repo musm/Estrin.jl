@@ -80,14 +80,8 @@ macro horner_split(x,p...)
         for i = n-3:-2:2
             ex_e = :(muladd($(t2), $ex_e, $(esc(p[i]))))
         end
-
-        c_e = gensym("c_e")
-        c_o = gensym("c_o")
-        push!(blk.args, :($(c_o) = $(ex_o)) )
-        push!(blk.args, :($(c_e) = $(ex_e)) )
-        push!(blk.args,:($(p0) + $(t)*$(c_o) + $(t2)*$(c_e)) )
-
-    
+    end
+    push!(blk.args,:($(p0) + $(t)*$(ex_o) + $(t2)*$(ex_e)) )    
     return blk
 end
 

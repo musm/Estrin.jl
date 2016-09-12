@@ -2,8 +2,8 @@ using BenchmarkTools, PyPlot
 using Base.Math.@horner, ParPoly
 
 
-bench(w::Function, X) = mapreduce(x -> reinterpret(Unsigned,x), |, w(x) for x in X)
-X = randn(10_000_000)
+bench(f::Function, X) = mapreduce(x -> reinterpret(Unsigned,x), |, f(x) for x in X)
+X = randn(1_000_000)
 
 nn = 5:25
 time_h = Float64[]
@@ -28,9 +28,9 @@ for n in nn
     t_hs   = @benchmark bench($f2, $X) 
     t_hss  = @benchmark bench($f3, $X)
 
-    push!(time_h,   median(t_h).time)
-    push!(time_hs,  median(t_hs).time)
-    push!(time_hss, median(t_hss).time)
+    push!(time_h,   mean(t_h).time)
+    push!(time_hs,  mean(t_hs).time)
+    push!(time_hss, mean(t_hss).time)
 end
 
 plot(nn, time_h*0.000001,   label="@horner")
